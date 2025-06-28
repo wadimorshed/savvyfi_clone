@@ -90,39 +90,86 @@ finance-app/
 └── README.md
 ```
 
+## 🧑‍💻 Getting Started
 
-## Key Features:
-- **Simple structure**: Only essential files and folders
-- **Clear separation**: Frontend in `client/`, backend in `server/`
-- **JSON storage**: Simple file-based data storage for hackathon speed
-- **Modular components**: One component per major feature
-- **RESTful API**: Clean API endpoints for each data type
-```
-
-## 📦 Getting Started
+Follow these instructions to set up and run the Personal Finance App locally for development or testing.
 
 ### ✅ Prerequisites
 
-- Node.js (v18 or later)
-- npm or yarn
-- Vite globally installed *(optional, for local builds)*
+Before you begin, make sure you have the following installed:
 
-### 🚀 Setup Instructions
+- [Node.js](https://nodejs.org/en/) (v18 or later recommended)
+- [npm](https://www.npmjs.com/)
+- [Git](https://git-scm.com/)
+- [SQLite](https://www.sqlite.org/index.html)
+
+---
+
+### ⚙️ Setup Instructions
+
+1. **Clone the repository**
+
+   ```bash
+   git clone https://github.com/your-username/finance-app.git
+   cd finance-app
+   ```
+
+2. **Install backend dependencies**
+
+   ```bash
+   cd server
+   npm install
+   ```
+
+3. **Install frontend dependencies**
+
+   ```bash
+   cd ../client
+   npm install
+   ```
+
+4. **Environment variables**
+
+   - Create a `.env` file in the root directory and configure the following (example):
+
+     ```env
+     GEMINI_API_KEY=your_google_gemini_api_key
+     PORT=5000
+     ```
+
+5. **Run the development servers**
+
+   - **Backend**
+
+     ```bash
+     cd ../server
+     npm run dev
+     ```
+
+   - **Frontend (in a new terminal tab/window)**
+
+     ```bash
+     cd ../client
+     npm run dev
+     ```
+
+6. **Access the app**
+
+   Open your browser and navigate to:  
+   👉 [http://localhost:5173](http://localhost:5173)
+
+---
+
+### 🧪 Optional: Seed or reset data
+
+Sample JSON data for transactions, budgets, and goals are located in:
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/your-username/finance-app.git
-cd finance-app
-
-# 2. Navigate to the frontend
-cd client
-
-# 3. Install dependencies
-npm install
-
-# 4. Run the development server
-npm run dev
+server/data/
 ```
+
+Feel free to modify or reset the content for testing purposes.
+
 
 ---
 
