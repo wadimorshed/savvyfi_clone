@@ -68,15 +68,17 @@ finance-app/
 │   ├── server.js
 │   │
 │   ├── routes/
-│   │   ├── transactions.js
-│   │   ├── budgets.js
-│   │   ├── goals.js
-│   │   └── ai.js
+│   │   ├── transactionRoutes.js
+│   │   ├── budgetRoutes.js
+│   │   ├── goalRoutes.js
+│   │   ├── userRoutes.js
+│   │   └── aiRoutes.js
 │   │
 │   ├── controllers/
 │   │   ├── transactionController.js
 │   │   ├── budgetController.js
 │   │   ├── goalController.js
+│   │   ├── userController.js
 │   │   └── aiController.js
 │   │
 │   ├── services/
