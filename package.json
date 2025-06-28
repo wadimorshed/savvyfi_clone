@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "Budgetting app that uses AI to help users",
   "main": "server.js",
-  "scripts": {},
+  "scripts": {
+    
+  },
   "author": "",
   "license": "ISC",
   "dependencies": {
@@ -11,6 +13,7 @@
     "cors": "^2.8.5",
     "dotenv": "^17.0.0",
     "express": "^5.1.0",
+    "git": "^0.1.5",
     "sqlite3": "^5.1.7"
   }
 }
