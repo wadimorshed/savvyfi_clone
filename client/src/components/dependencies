@@ -1,9 +1,7 @@
 {
-  "dependencies": {
-    "@ai-sdk/google": "latest",           # Google AI provider
-    "@ai-sdk/react": "latest",            # React hooks for AI
-    "ai": "latest",                       # Core AI SDK
-    "pdfjs-dist": "^4.0.379",            # PDF parsing
-    "zod": "^3.24.1"                     # Schema validation
-  }
+  "@ai-sdk/google": "latest",
+  "@ai-sdk/react": "latest", 
+  "ai": "latest",
+  "better-sqlite3": "^9.2.2",
+  "pdfjs-dist": "^4.0.379"  // Optional for PDF support
 }
