@@ -38,7 +38,7 @@ Built with a modern tech stack and powered by AI via Google Gemini, our goal is 
 - **Backend**: Node.js + Express.js
 - **AI Integration**: Google Gemini API
 
-```
+``` plaintext
 finance-app/
 ├── package.json
 ├── .env
