@@ -15,7 +15,10 @@ import {
   Wallet,
   AlertTriangle,
   Edit3,
-  X,
+  Database,
+  History,
+  FileText,
+  Download,
 } from "lucide-react"
 import { FinancialUpload } from "@/components/csv-upload"
 import { ModelInfo } from "@/components/model-info"
@@ -24,17 +27,24 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import React from "react"
 import { FormattedText } from "@/components/formatted-text"
 import { DataUpdatePanel } from "@/components/data-update-panel"
+import { generateFinancialReportPDF, generateConversationPDF } from "@/utils/pdf-generator"
 
 export default function FinancialAdvisorChat() {
   const [financialText, setFinancialText] = useState("")
   const [selectedPrompt, setSelectedPrompt] = useState(null)
   const [showDataEditor, setShowDataEditor] = useState(false)
   const [dataUpdateHistory, setDataUpdateHistory] = useState([])
+  const [userEmail] = useState("default@example.com") // Use email as identifier
+  const [sessionId] = useState(`session_${Date.now()}`)
   const messagesEndRef = useRef(null)
   const messagesContainerRef = useRef(null)
 
   const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat({
-    body: financialText ? { financialData: financialText } : {},
+    body: {
+      financialData: financialText || null,
+      userId: userEmail,
+      sessionId,
+    },
     onError: (error) => {
       console.error("Chat error:", error)
     },
@@ -50,6 +60,33 @@ export default function FinancialAdvisorChat() {
     const timeoutId = setTimeout(scrollToBottom, 100)
     return () => clearTimeout(timeoutId)
   }, [messages, isLoading])
+
+  // Load historical data on component mount
+  useEffect(() => {
+    const loadHistoricalData = async () => {
+      try {
+        console.log("🔍 Loading historical data for user email:", userEmail)
+        const response = await fetch(`/api/financial-data?userId=${userEmail}&type=latest`)
+        const result = await response.json()
+
+        console.log("📊 Historical data response:", result)
+
+        if (result.success && result.data && result.data.raw_data) {
+          console.log("✅ Loaded historical financial data:", result.data.raw_data.length, "characters")
+          console.log("📅 Upload date:", result.data.upload_date)
+          console.log("📁 Filename:", result.data.filename)
+          setFinancialText(result.data.raw_data)
+        } else {
+          console.log("❌ No historical data found or invalid response")
+          console.log("Response details:", result)
+        }
+      } catch (error) {
+        console.error("❌ Failed to load historical data:", error)
+      }
+    }
+
+    loadHistoricalData()
+  }, [userEmail])
 
   // Add this after the financialText declaration
   React.useEffect(() => {
@@ -68,36 +105,141 @@ export default function FinancialAdvisorChat() {
     }
   }, [financialText, messages.length, handleInputChange, handleSubmit])
 
+  // Custom submit handler to ensure financial data is always sent
+  const handleCustomSubmit = async (e) => {
+    e.preventDefault()
+    if (!input.trim()) return
+
+    // Check if this is a data update request
+    const isDataUpdateRequest =
+      input.toLowerCase().includes("add ") ||
+      input.toLowerCase().includes("remove ") ||
+      input.toLowerCase().includes("update ") ||
+      input.toLowerCase().includes("change ") ||
+      input.toLowerCase().includes("delete ") ||
+      input.toLowerCase().includes("create ")
+
+    if (isDataUpdateRequest && financialText) {
+      try {
+        // Send to data update API
+        const response = await fetch("/api/update-financial-data", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            currentData: financialText,
+            updateRequest: input,
+          }),
+        })
+
+        if (response.ok) {
+          const result = await response.json()
+          if (result.updatedData && result.updatedData !== financialText) {
+            handleDataUpdate(result.updatedData, result.updateDescription)
+
+            // Save updated data to database as incremental update
+            try {
+              await fetch("/api/financial-data", {
+                method: "PUT",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  userId: userEmail,
+                  processedData: result.updatedData,
+                  updateType: "ai_update",
+                }),
+              })
+              console.log("✅ Incremental update saved to database")
+            } catch (dbError) {
+              console.warn("Failed to save incremental update to database:", dbError)
+            }
+
+            // Send a confirmation message to chat
+            const confirmationMessage = `✅ **Data Updated!** ${result.updateDescription}\n\nYour financial information has been added to your historical database. What would you like to analyze next?`
+
+            // Add the confirmation as an assistant message
+            const syntheticEvent = {
+              preventDefault: () => {},
+              target: { value: input },
+            }
+
+            // Clear the input and submit the original request
+            handleInputChange({ target: { value: "" } })
+            handleSubmit(syntheticEvent, {
+              body: {
+                financialData: result.updatedData,
+                isDataUpdate: true,
+                updateDescription: result.updateDescription,
+                userId: userEmail,
+                sessionId,
+              },
+            })
+            return
+          }
+        }
+      } catch (error) {
+        console.error("Data update failed:", error)
+        // Fall through to normal chat handling
+      }
+    }
+
+    // Normal chat submission
+    const customBody = {
+      financialData: financialText || null,
+      userId: userEmail,
+      sessionId,
+    }
+    console.log("Submitting with financial data:", !!financialText)
+    if (financialText) {
+      console.log("Financial data length:", financialText.length)
+    }
+
+    handleSubmit(e, { body: customBody })
+  }
+
+  // Add new prompts for historical data analysis
   const premadePrompts = [
     {
-      text: "How much should I save each month?",
-      icon: <PiggyBank className="w-4 h-4" />,
-      color: "bg-green-100 hover:bg-green-200 text-green-800",
-    },
-    {
-      text: "What's my biggest expense?",
+      text: "Show me my spending trends over time",
       icon: <TrendingUp className="w-4 h-4" />,
       color: "bg-blue-100 hover:bg-blue-200 text-blue-800",
     },
     {
-      text: "Am I saving enough?",
+      text: "How has my savings rate changed?",
+      icon: <PiggyBank className="w-4 h-4" />,
+      color: "bg-green-100 hover:bg-green-200 text-green-800",
+    },
+    {
+      text: "What's my biggest expense category?",
       icon: <Calculator className="w-4 h-4" />,
       color: "bg-purple-100 hover:bg-purple-200 text-purple-800",
     },
     {
-      text: "How can I spend less?",
+      text: "Compare this month vs last month",
       icon: <Calendar className="w-4 h-4" />,
       color: "bg-orange-100 hover:bg-orange-200 text-orange-800",
     },
     {
-      text: "Should I pay off debt first?",
+      text: "How am I doing with my budgets?",
       icon: <Wallet className="w-4 h-4" />,
       color: "bg-indigo-100 hover:bg-indigo-200 text-indigo-800",
     },
     {
-      text: "What's my financial health score?",
+      text: "Show me my goal progress",
       icon: <DollarSign className="w-4 h-4" />,
       color: "bg-emerald-100 hover:bg-emerald-200 text-emerald-800",
+    },
+    {
+      text: "What are my income trends?",
+      icon: <History className="w-4 h-4" />,
+      color: "bg-cyan-100 hover:bg-cyan-200 text-cyan-800",
+    },
+    {
+      text: "Analyze my financial patterns",
+      icon: <TrendingUp className="w-4 h-4" />,
+      color: "bg-violet-100 hover:bg-violet-200 text-violet-800",
     },
   ]
 
@@ -115,15 +257,15 @@ export default function FinancialAdvisorChat() {
       example: "Update my salary to $5500 per month",
     },
     {
-      text: "Remove an expense",
-      icon: <X className="w-4 h-4" />,
-      color: "bg-gray-100 hover:bg-gray-200 text-gray-800",
-      example: "Remove Netflix subscription from my expenses",
+      text: "Create a budget",
+      icon: <Calculator className="w-4 h-4" />,
+      color: "bg-blue-100 hover:bg-blue-200 text-blue-800",
+      example: "Create a budget of $400 for groceries",
     },
     {
       text: "Add savings goal",
       icon: <PiggyBank className="w-4 h-4" />,
-      color: "bg-blue-100 hover:bg-blue-200 text-blue-800",
+      color: "bg-purple-100 hover:bg-purple-200 text-purple-800",
       example: "Add goal to save $5000 for vacation",
     },
   ]
@@ -167,73 +309,34 @@ export default function FinancialAdvisorChat() {
     console.log("New data length:", updatedData.length)
   }
 
-  // Custom submit handler to ensure financial data is always sent
-  const handleCustomSubmit = async (e) => {
-    e.preventDefault()
-    if (!input.trim()) return
-
-    // Check if this is a data update request
-    const isDataUpdateRequest =
-      input.toLowerCase().includes("add ") ||
-      input.toLowerCase().includes("remove ") ||
-      input.toLowerCase().includes("update ") ||
-      input.toLowerCase().includes("change ") ||
-      input.toLowerCase().includes("delete ")
-
-    if (isDataUpdateRequest && financialText) {
-      try {
-        // Send to data update API
-        const response = await fetch("/api/update-financial-data", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            currentData: financialText,
-            updateRequest: input,
-          }),
-        })
-
-        if (response.ok) {
-          const result = await response.json()
-          if (result.updatedData && result.updatedData !== financialText) {
-            handleDataUpdate(result.updatedData, result.updateDescription)
-
-            // Send a confirmation message to chat
-            const confirmationMessage = `✅ **Data Updated!** ${result.updateDescription}\n\nYour financial information has been updated. What would you like to analyze next?`
-
-            // Add the confirmation as an assistant message
-            const syntheticEvent = {
-              preventDefault: () => {},
-              target: { value: input },
-            }
-
-            // Clear the input and submit the original request
-            handleInputChange({ target: { value: "" } })
-            handleSubmit(syntheticEvent, {
-              body: {
-                financialData: result.updatedData,
-                isDataUpdate: true,
-                updateDescription: result.updateDescription,
-              },
-            })
-            return
-          }
-        }
-      } catch (error) {
-        console.error("Data update failed:", error)
-        // Fall through to normal chat handling
-      }
+  const handleExportFinancialReport = () => {
+    if (!financialText) {
+      alert("No financial data available to export. Please upload your financial information first.")
+      return
     }
 
-    // Normal chat submission
-    const customBody = financialText ? { financialData: financialText } : {}
-    console.log("Submitting with financial data:", !!financialText)
-    if (financialText) {
-      console.log("Financial data length:", financialText.length)
+    try {
+      const doc = generateFinancialReportPDF(financialText, userEmail)
+      doc.save(`Financial_Report_${new Date().toISOString().split("T")[0]}.pdf`)
+    } catch (error) {
+      console.error("Error generating financial report:", error)
+      alert("Failed to generate financial report. Please try again.")
+    }
+  }
+
+  const handleExportConversation = () => {
+    if (messages.length === 0) {
+      alert("No conversation to export. Start chatting with the AI first!")
+      return
     }
 
-    handleSubmit(e, { body: customBody })
+    try {
+      const doc = generateConversationPDF(messages, userEmail)
+      doc.save(`AI_Conversation_${new Date().toISOString().split("T")[0]}.pdf`)
+    } catch (error) {
+      console.error("Error generating conversation transcript:", error)
+      alert("Failed to generate conversation transcript. Please try again.")
+    }
   }
 
   return (
@@ -252,7 +355,7 @@ export default function FinancialAdvisorChat() {
         )}
 
         {/* Financial Upload Section */}
-        <FinancialUpload onDataUploaded={handleDataUploaded} financialText={financialText} />
+        <FinancialUpload onDataUploaded={handleDataUploaded} financialText={financialText} userId={userEmail} />
 
         {/* Data Update Panel */}
         {financialText && (
@@ -284,14 +387,44 @@ export default function FinancialAdvisorChat() {
                       {dataUpdateHistory.length} updates
                     </span>
                   )}
+                  <span className="text-xs bg-purple-500 px-2 py-1 rounded-full">
+                    <Database className="w-3 h-3 mr-1 inline" />
+                    Full Database
+                  </span>
                 </div>
               )}
             </CardTitle>
-            <p className="text-blue-100 text-sm">
-              {financialText
-                ? "Get personalized advice and update your financial data with natural language"
-                : "Upload your financial information for personalized insights"}
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-blue-100 text-sm">
+                {financialText
+                  ? "Get personalized advice with access to your complete financial database (transactions, budgets, goals)"
+                  : "Upload your financial information for comprehensive insights with full database tracking"}
+              </p>
+              <div className="flex gap-2">
+                {financialText && (
+                  <Button
+                    onClick={handleExportFinancialReport}
+                    variant="outline"
+                    size="sm"
+                    className="text-white border-white hover:bg-white hover:text-blue-700 bg-transparent"
+                  >
+                    <FileText className="w-4 h-4 mr-2" />
+                    Export Report
+                  </Button>
+                )}
+                {messages.length > 0 && (
+                  <Button
+                    onClick={handleExportConversation}
+                    variant="outline"
+                    size="sm"
+                    className="text-white border-white hover:bg-white hover:text-blue-700 bg-transparent"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Download Transcript
+                  </Button>
+                )}
+              </div>
+            </div>
           </CardHeader>
 
           <CardContent className="flex flex-col p-0">
@@ -312,7 +445,7 @@ export default function FinancialAdvisorChat() {
                   <h3 className="text-lg font-semibold text-gray-800 mb-2">Welcome to your AI Financial Advisor</h3>
                   <p className="text-gray-600 mb-6">
                     {financialText
-                      ? "Your financial information is loaded. Ask me anything or update your data with natural language!"
+                      ? "Your financial information is loaded with full database access. Ask me about transactions, budgets, goals, or update your data!"
                       : "Upload your financial information above, then ask me anything about your finances"}
                   </p>
                 </div>
@@ -366,7 +499,9 @@ export default function FinancialAdvisorChat() {
                         ></div>
                       </div>
                       <span className="text-gray-600 text-sm">
-                        {financialText ? "Analyzing your financial information..." : "Processing your question..."}
+                        {financialText
+                          ? "Analyzing your complete financial database..."
+                          : "Processing your question..."}
                       </span>
                     </div>
                   </div>
@@ -382,7 +517,7 @@ export default function FinancialAdvisorChat() {
               <div className="space-y-4">
                 <div>
                   <h4 className="text-sm font-medium text-gray-700 mb-3">Quick Financial Questions:</h4>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                     {premadePrompts.map((prompt, index) => (
                       <Button
                         key={index}
@@ -423,7 +558,7 @@ export default function FinancialAdvisorChat() {
                       ))}
                     </div>
                     <p className="text-xs text-gray-500 mt-2">
-                      💡 Try: "Add $50 monthly Netflix", "Update salary to $6000", "Remove gym membership", "Add
+                      💡 Try: "Add $50 monthly Netflix", "Update salary to $6000", "Create budget $400 groceries", "Add
                       vacation savings goal $3000"
                     </p>
                   </div>
@@ -439,7 +574,7 @@ export default function FinancialAdvisorChat() {
                   onChange={handleInputChange}
                   placeholder={
                     financialText
-                      ? "Ask about finances or update your data (e.g., 'Add $200 gym membership')..."
+                      ? "Ask about finances, budgets, goals, or update your data (e.g., 'Create $400 grocery budget')..."
                       : "Ask me about finances..."
                   }
                   disabled={isLoading}
