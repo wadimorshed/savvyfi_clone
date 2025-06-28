@@ -1,4 +1,5 @@
 //Database initialization/connection
+const db = require('./db');
 
 exports.createGoal = (req, res) => {
 

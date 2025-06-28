@@ -1,4 +1,5 @@
 //Database initialization/connection
+const db = require('./db');
 
 exports.createTransaction = (req, res) => {
     const {
@@ -9,8 +10,14 @@ exports.createTransaction = (req, res) => {
         method,
         date,
         recurring,
-        
+        receipt,
+        tags,
     } = req.body;  
+
+    if(!type || !category || !amount || !date || !recurring)
+        return res.status(400).json({ error: "Not all necessary fields are filled in" });
+
+    
 };
 
 exports.getTransaction = (req, res) => {

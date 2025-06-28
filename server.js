@@ -7,6 +7,7 @@ const port = process.env.PORT || 5000;
 
 //Database dependencies
 const sqlite = require("sqlite3");
+const db = new sqlite3.Database('./finance.db');
 
 //Express
 const app = express();
@@ -36,3 +37,5 @@ const aiRoutes = require('./routes/aiRoutes');
 app.use('/api/ai', aiRoutes);
 
 app.listen(port);
+
+module.exports = db;
