@@ -1,3 +1,5 @@
+// chatbot
+
 import { google } from "@ai-sdk/google"
 import { streamText } from "ai"
 
@@ -11,10 +13,14 @@ export async function POST(req) {
 
     // Extract financial data from the request body - check both locations
     const financialData = body.financialData || body.data?.financialData || null
+    const isDataUpdate = body.isDataUpdate || false
+    const updateDescription = body.updateDescription || null
 
     console.log("=== API ROUTE DEBUG ===")
     console.log("Request body keys:", Object.keys(body))
     console.log("Financial data received:", financialData ? "YES" : "NO")
+    console.log("Is data update:", isDataUpdate)
+    console.log("Update description:", updateDescription)
     if (financialData) {
       console.log("Financial data length:", financialData.length)
       console.log("Financial data preview:", financialData.substring(0, 300))
@@ -47,7 +53,25 @@ FORMATTING:
 - Keep paragraphs short (2-3 sentences max)
 - Always end with "What would you like to know more about?"`
 
-    if (financialData) {
+    if (isDataUpdate && updateDescription) {
+      systemPrompt += `
+
+✅ **DATA UPDATE CONFIRMED!** 
+The user's financial data has been updated: ${updateDescription}
+
+RESPONSE APPROACH:
+- Acknowledge the successful update
+- Briefly explain how this change affects their financial picture
+- Suggest what to analyze next with the updated data
+- Keep it short and encouraging
+
+Example response:
+"✅ **Great! I've updated your data.** ${updateDescription}
+
+This change [brief impact explanation]. Your updated financial picture shows [key insight].
+
+What would you like me to analyze with your updated information?"`
+    } else if (financialData) {
       systemPrompt += `
 
 ✅ I can see your financial information! 
@@ -73,12 +97,23 @@ What would you like me to look at next - your savings rate or spending in a spec
       systemPrompt += `
 
 The user hasn't uploaded financial data yet. Keep it simple:
-- Explain they can upload a text file with their financial info
+- Explain they can upload a text file or PDF with their financial info
+- Mention that PDFs need to have readable text (not just images)
+- Mention they can also update their data using natural language commands
 - Give ONE general tip they can use right away
 - Ask what specific area of finance they want help with`
     }
 
     systemPrompt += `
+
+DATA UPDATE FEATURE:
+Users can update their financial data by saying things like:
+- "Add $200 monthly gym membership to my expenses"
+- "Update my salary to $5500 per month"  
+- "Remove Netflix subscription from my expenses"
+- "Add goal to save $5000 for vacation"
+
+If they ask about updating data, explain this feature briefly.
 
 REMEMBER: 
 - Short responses (under 150 words)
