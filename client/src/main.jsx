@@ -1,38 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import Layout from './components/Layout';
-import Dashboard from './components/Dashboard';
-import Transactions from './components/Transactions';
-import Budget from './components/Budget';
-import Goals from './components/Goals';
-import AIAssistant from './components/AIAssistant';
+import App from './App';
 
-const App = () => {
-  const [currentPage, setCurrentPage] = useState('dashboard');
-
-  const renderPage = () => {
-    switch (currentPage) {
-      case 'dashboard':
-        return <Dashboard />;
-      case 'transactions':
-        return <Transactions />;
-      case 'budgets':
-        return <Budget />;
-      case 'goals':
-        return <Goals />;
-      case 'ai-assistant':
-        return <AIAssistant />;
-      default:
-        return <Dashboard />;
-    }
-  };
-
-  return (
-    <Layout currentPage={currentPage} onPageChange={setCurrentPage}>
-      {renderPage()}
-    </Layout>
-  );
-};
-
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
