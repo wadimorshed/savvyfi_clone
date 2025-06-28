@@ -31,107 +31,80 @@ Built with a modern tech stack and powered by AI via Google Gemini, our goal is 
 ## 🗂️ Project Structure
 
 ```plaintext
+# Personal Finance App - Simplified File Structure
+
+## Tech Stack:
+- **Frontend**: React.js + Tailwind CSS
+- **Backend**: Node.js + Express.js
+- **AI Integration**: Google Gemini API
+
+```
 finance-app/
-├── README.md
 ├── package.json
-├── .env.example
+├── .env
 ├── .gitignore
 │
 ├── client/                    # React Frontend
 │   ├── package.json
 │   ├── vite.config.js
 │   ├── tailwind.config.js
-│   ├── postcss.config.js
 │   │
 │   ├── src/
-│   ├── components/
-│   │   ├── common/
-│   │   │   ├── Layout.jsx
-│   │   │   ├── Navbar.jsx
-│   │   │   ├── Sidebar.jsx
-│   │   │   ├── Modal.jsx
-│   │   │   └── LoadingSpinner.jsx
-│   │   ├── dashboard/
-│   │   │   ├── ExpenseChart.jsx
-│   │   │   ├── IncomeExpenseGraph.jsx
-│   │   │   ├── RecentActivity.jsx
-│   │   │   └── NetWorthTracker.jsx
-│   │   ├── budget/
-│   │   │   ├── BudgetOverview.jsx
-│   │   │   ├── BudgetRuleEditor.jsx
-│   │   │   ├── AIBudgetSuggestions.jsx
-│   │   │   └── SharedBudgets.jsx
-│   │   ├── transactions/
-│   │   │   ├── TransactionList.jsx
-│   │   │   ├── TransactionForm.jsx
-│   │   │   ├── CategoryManager.jsx
-│   │   │   └── SpendingTrends.jsx
-│   │   ├── goals/
-│   │   │   ├── SavingsGoals.jsx
-│   │   │   ├── DebtPlanner.jsx
-│   │   │   ├── ForecastChart.jsx
-│   │   │   └── WhatIfScenarios.jsx
-│   │   ├── reminders/
-│   │   │   ├── CalendarView.jsx
-│   │   │   ├── SubscriptionTracker.jsx
-│   │   │   └── AlertsList.jsx
-│   │   ├── ai-assistant/
-│   │   │   ├── ChatInterface.jsx
-│   │   │   ├── PromptSuggestions.jsx
-│   │   │   └── AIInsights.jsx
-│   │   └── gamification/
-│   │       ├── HealthScore.jsx
-│   │       ├── AchievementBadges.jsx
-│   │       └── MonthlyReport.jsx
-│   ├── pages/
-│   │   ├── Dashboard.jsx
-│   │   ├── Budget.jsx
-│   │   ├── Transactions.jsx
-│   │   ├── Goals.jsx
-│   │   ├── Reminders.jsx
-│   │   ├── Assistant.jsx
-│   │   └── Profile.jsx
-│   ├── hooks/
-│   │   ├── useAuth.js
-│   │   ├── useTransactions.js
-│   │   ├── useBudget.js
-│   │   ├── useGoals.js
-│   │   └── useAI.js
+│   │   ├── components/
+│   │   │   ├── Dashboard.jsx
+│   │   │   ├── Budget.jsx
+│   │   │   ├── Transactions.jsx
+│   │   │   ├── Goals.jsx
+│   │   │   ├── AIAssistant.jsx
+│   │   │   └── Layout.jsx
+│   │   │
+│   │   ├── services/
+│   │   │   └── api.js
+│   │   │
+│   │   ├── utils/
+│   │   │   └── helpers.js
+│   │   │
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   │
+│   ├── public/
+│   │   └── index.html
+│   │
+│   └── src/index.css
+│
+├── server/                    # Node.js + Express Backend
+│   ├── package.json
+│   ├── server.js
+│   │
+│   ├── routes/
+│   │   ├── transactions.js
+│   │   ├── budgets.js
+│   │   ├── goals.js
+│   │   └── ai.js
+│   │
+│   ├── controllers/
+│   │   ├── transactionController.js
+│   │   ├── budgetController.js
+│   │   ├── goalController.js
+│   │   └── aiController.js
+│   │
 │   ├── services/
-│   │   ├── api.js
-│   │   ├── geminiAPI.js
-│   │   ├── transactionService.js
-│   │   ├── budgetService.js
-│   │   └── storageService.js
-│   ├── utils/
-│   │   ├── constants.js
-│   │   ├── helpers.js
-│   │   ├── formatters.js
-│   │   ├── calculations.js
-│   │   └── validators.js
-│   ├── context/
-│   │   ├── AuthContext.jsx
-│   │   ├── ThemeContext.jsx
-│   │   └── AppContext.jsx
-│   ├── styles/
-│   │   ├── globals.css
-│   │   ├── components.css
-│   │   └── themes.css
-│   ├── data/
-│   │   ├── mockData.js
-│   │   └── categories.js
-│   ├── App.jsx
-│   └── main.jsx
+│   │   └── geminiService.js
+│   │
+│   └── data/
+│       ├── transactions.json
+│       ├── budgets.json
+│       └── goals.json
 │
-├── public/
-│   ├── index.html
-│   ├── favicon.ico
-│   └── icons/
-│
-└── docs/
-    ├── API.md
-    ├── FEATURES.md
-    └── DEPLOYMENT.md
+└── README.md
+```
+
+## Key Features:
+- **Simple structure**: Only essential files and folders
+- **Clear separation**: Frontend in `client/`, backend in `server/`
+- **JSON storage**: Simple file-based data storage for hackathon speed
+- **Modular components**: One component per major feature
+- **RESTful API**: Clean API endpoints for each data type
 ```
 
 ## 📦 Getting Started
