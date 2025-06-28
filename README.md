@@ -19,26 +19,16 @@ Built with a modern tech stack and powered by AI via Google Gemini, our goal is 
 
 ## 🛠️ Tech Stack
 
-| Layer       | Technology                       |
-|-------------|----------------------------------|
-| Frontend    | React.js + Tailwind CSS + Vite   |
-| Backend     | Node.js + Express.js             |
-| AI Engine   | Google Gemini API                |
-| Database    | JSON files *(upgradable to MongoDB/PostgreSQL)*
+| Layer       | Technology                      |
+|-------------|---------------------------------|
+| Frontend        | React.js + Tailwind CSS     |
+| Backend         | Node.js + Express.js        |
+| AI Integration  | Google Gemini API           |
+| Database        | SQLite                      |
 
 ---
 
-## 🗂️ Project Structure
-
-```plaintext
-# Personal Finance App - Simplified File Structure
-
-## Tech Stack:
-- **Frontend**: React.js + Tailwind CSS
-- **Backend**: Node.js + Express.js
-- **AI Integration**: Google Gemini API
-
-``` plaintext
+```
 finance-app/
 ├── package.json
 ├── .env
@@ -98,6 +88,7 @@ finance-app/
 │
 └── README.md
 ```
+
 
 ## Key Features:
 - **Simple structure**: Only essential files and folders
