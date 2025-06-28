@@ -132,6 +132,7 @@ finance-app/
     ├── API.md
     ├── FEATURES.md
     └── DEPLOYMENT.md
+```
 
 ## 📦 Getting Started
 
