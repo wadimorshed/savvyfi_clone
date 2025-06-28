@@ -1,41 +1,52 @@
-require('dotenv').config();
+require('dotenv').config();  // Load environment variables from a .env file
 
-//External dependencies
+// External dependencies
 const express = require("express");
-const cors = require("cors");
-const port = process.env.PORT || 5000;
+const cors = require("cors");  // For enabling Cross-Origin Resource Sharing (CORS)
+const port = process.env.PORT || 5000;  // Get the port from environment or default to 5000
 
-//Database dependencies
-const sqlite = require("sqlite3");
-const db = new sqlite3.Database('./finance.db');
+// Database dependencies
+const sqlite = require("sqlite3");  // SQLite database package
+const db = new sqlite3.Database('./finance.db', (err) => {
+    if (err) {
+        console.error('Database connection error:', err.message);  // Log any database connection error
+    } else {
+        console.log('Connected to the SQLite database.');  // Log successful connection
+    }
+});
 
-//Express
-const app = express();
+// Express setup
+const app = express();  // Create a new Express application
 
-//Middleware
-app.use(cors);
-app.use(express.json());
+// Middleware setup
+app.use(cors());  // Enable CORS for all routes (ensure cors() is called as a function)
+app.use(express.json());  // Middleware to parse incoming JSON requests
 
-//Users
+// Routes
+// Users Route
 const userRoutes = require('./routes/userRoutes');
-app.use('/api/users', userRoutes);
+app.use('/api/users', userRoutes);  // Route for handling user-related requests
 
-//Budgets
+// Budgets Route
 const budgetRoutes = require('./routes/budgetRoutes');
-app.use('/api/budgets', budgetRoutes);
+app.use('/api/budgets', budgetRoutes);  // Route for handling budget-related requests
 
-//Goals
+// Goals Route
 const goalRoutes = require('./routes/goalRoutes');
-app.use('/api/goals', goalRoutes);
+app.use('/api/goals', goalRoutes);  // Route for handling goal-related requests
 
-//Transactions
+// Transactions Route
 const transactionRoutes = require('./routes/transactionRoutes');
-app.use('/api/transactions', transactionRoutes);
+app.use('/api/transactions', transactionRoutes);  // Route for handling transaction-related requests
 
-//AI
-const aiRoutes = require('./routes/aiRoutes');
-app.use('/api/ai', aiRoutes);
+// AI Route
+const aiRoutes = require('./routes/aiRoutes');  // Import AI-related routes
+app.use('/api/ai', aiRoutes);  // Route for handling AI-related requests
 
-app.listen(port);
+// Start the Express server
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);  // Log server start message
+});
 
+// Export the database instance for use in other parts of the application
 module.exports = db;
