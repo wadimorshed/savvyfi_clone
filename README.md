@@ -28,6 +28,7 @@ Built with a modern tech stack and powered by AI via Google Gemini, our goal is 
 
 ---
 
+## File Structure:
 ```
 finance-app/
 ├── package.json
