@@ -1,0 +1,426 @@
+import jsPDF from "jspdf"
+
+// Financial Report PDF Generator
+export function generateFinancialReportPDF(financialData, userId = "User") {
+  const doc = new jsPDF()
+  const pageWidth = doc.internal.pageSize.width
+  const pageHeight = doc.internal.pageSize.height
+  let yPosition = 20
+
+  // Helper function to add text with word wrapping
+  const addWrappedText = (text, x, y, maxWidth, fontSize = 10) => {
+    doc.setFontSize(fontSize)
+    const lines = doc.splitTextToSize(text, maxWidth)
+    doc.text(lines, x, y)
+    return y + lines.length * fontSize * 0.4
+  }
+
+  // Helper function to check if we need a new page
+  const checkNewPage = (requiredSpace = 20) => {
+    if (yPosition + requiredSpace > pageHeight - 20) {
+      doc.addPage()
+      yPosition = 20
+    }
+  }
+
+  // Header
+  doc.setFontSize(20)
+  doc.setFont(undefined, "bold")
+  doc.text("Financial Report", pageWidth / 2, yPosition, { align: "center" })
+  yPosition += 15
+
+  doc.setFontSize(12)
+  doc.setFont(undefined, "normal")
+  doc.text(`Generated on: ${new Date().toLocaleDateString()}`, pageWidth / 2, yPosition, { align: "center" })
+  doc.text(`User: ${userId}`, pageWidth / 2, yPosition + 8, { align: "center" })
+  yPosition += 25
+
+  // Add a line separator
+  doc.setDrawColor(0, 0, 0)
+  doc.line(20, yPosition, pageWidth - 20, yPosition)
+  yPosition += 15
+
+  try {
+    // Parse and analyze financial data
+    const analysis = analyzeFinancialDataForPDF(financialData)
+
+    // Executive Summary
+    checkNewPage(40)
+    doc.setFontSize(16)
+    doc.setFont(undefined, "bold")
+    doc.text("Executive Summary", 20, yPosition)
+    yPosition += 12
+
+    doc.setFontSize(10)
+    doc.setFont(undefined, "normal")
+    yPosition = addWrappedText(analysis.summary, 20, yPosition, pageWidth - 40)
+    yPosition += 10
+
+    // Financial Overview
+    checkNewPage(60)
+    doc.setFontSize(16)
+    doc.setFont(undefined, "bold")
+    doc.text("Financial Overview", 20, yPosition)
+    yPosition += 12
+
+    // Income and Expenses Table
+    doc.setFontSize(12)
+    doc.setFont(undefined, "bold")
+    doc.text("Income & Expenses", 20, yPosition)
+    yPosition += 8
+
+    doc.setFontSize(10)
+    doc.setFont(undefined, "normal")
+
+    if (analysis.totalIncome > 0) {
+      doc.text(`Total Monthly Income: $${analysis.totalIncome.toLocaleString()}`, 25, yPosition)
+      yPosition += 6
+    }
+
+    if (analysis.totalExpenses > 0) {
+      doc.text(`Total Monthly Expenses: $${analysis.totalExpenses.toLocaleString()}`, 25, yPosition)
+      yPosition += 6
+    }
+
+    if (analysis.netIncome !== 0) {
+      doc.text(`Net Income: $${analysis.netIncome.toLocaleString()}`, 25, yPosition)
+      yPosition += 6
+    }
+
+    if (analysis.savingsRate > 0) {
+      doc.text(`Savings Rate: ${analysis.savingsRate.toFixed(1)}%`, 25, yPosition)
+      yPosition += 10
+    }
+
+    // Top Spending Categories
+    if (analysis.topCategories.length > 0) {
+      checkNewPage(40)
+      doc.setFontSize(12)
+      doc.setFont(undefined, "bold")
+      doc.text("Top Spending Categories", 20, yPosition)
+      yPosition += 8
+
+      doc.setFontSize(10)
+      doc.setFont(undefined, "normal")
+
+      analysis.topCategories.slice(0, 5).forEach((category, index) => {
+        const percentage =
+          analysis.totalExpenses > 0 ? ((category.amount / analysis.totalExpenses) * 100).toFixed(1) : 0
+        doc.text(`${index + 1}. ${category.name}: $${category.amount.toLocaleString()} (${percentage}%)`, 25, yPosition)
+        yPosition += 6
+      })
+      yPosition += 10
+    }
+
+    // Financial Goals (if found in data)
+    if (analysis.goals.length > 0) {
+      checkNewPage(40)
+      doc.setFontSize(12)
+      doc.setFont(undefined, "bold")
+      doc.text("Financial Goals", 20, yPosition)
+      yPosition += 8
+
+      doc.setFontSize(10)
+      doc.setFont(undefined, "normal")
+
+      analysis.goals.forEach((goal, index) => {
+        yPosition = addWrappedText(`${index + 1}. ${goal}`, 25, yPosition, pageWidth - 50)
+        yPosition += 2
+      })
+      yPosition += 10
+    }
+
+    // Recommendations
+    if (analysis.recommendations.length > 0) {
+      checkNewPage(40)
+      doc.setFontSize(12)
+      doc.setFont(undefined, "bold")
+      doc.text("Recommendations", 20, yPosition)
+      yPosition += 8
+
+      doc.setFontSize(10)
+      doc.setFont(undefined, "normal")
+
+      analysis.recommendations.forEach((rec, index) => {
+        yPosition = addWrappedText(`${index + 1}. ${rec}`, 25, yPosition, pageWidth - 50)
+        yPosition += 2
+      })
+      yPosition += 10
+    }
+
+    // Raw Data Section
+    checkNewPage(40)
+    doc.setFontSize(12)
+    doc.setFont(undefined, "bold")
+    doc.text("Raw Financial Data", 20, yPosition)
+    yPosition += 8
+
+    doc.setFontSize(8)
+    doc.setFont(undefined, "normal")
+
+    // Truncate data if too long
+    const rawData =
+      financialData.length > 2000
+        ? financialData.substring(0, 2000) + "\n\n[Data truncated for PDF export...]"
+        : financialData
+
+    yPosition = addWrappedText(rawData, 20, yPosition, pageWidth - 40, 8)
+  } catch (error) {
+    console.error("Error generating financial report:", error)
+
+    // Fallback: Just show raw data
+    doc.setFontSize(12)
+    doc.setFont(undefined, "bold")
+    doc.text("Financial Data", 20, yPosition)
+    yPosition += 10
+
+    doc.setFontSize(10)
+    doc.setFont(undefined, "normal")
+    addWrappedText(financialData, 20, yPosition, pageWidth - 40)
+  }
+
+  // Footer
+  const totalPages = doc.internal.getNumberOfPages()
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i)
+    doc.setFontSize(8)
+    doc.setFont(undefined, "normal")
+    doc.text(`Page ${i} of ${totalPages}`, pageWidth / 2, pageHeight - 10, { align: "center" })
+    doc.text("Generated by AI Financial Advisor", pageWidth / 2, pageHeight - 5, { align: "center" })
+  }
+
+  return doc
+}
+
+// Conversation Transcript PDF Generator
+export function generateConversationPDF(messages, userId = "User") {
+  const doc = new jsPDF()
+  const pageWidth = doc.internal.pageSize.width
+  const pageHeight = doc.internal.pageSize.height
+  let yPosition = 20
+
+  // Helper function to add text with word wrapping
+  const addWrappedText = (text, x, y, maxWidth, fontSize = 10) => {
+    doc.setFontSize(fontSize)
+    const lines = doc.splitTextToSize(text, maxWidth)
+    doc.text(lines, x, y)
+    return y + lines.length * fontSize * 0.4
+  }
+
+  // Helper function to check if we need a new page
+  const checkNewPage = (requiredSpace = 30) => {
+    if (yPosition + requiredSpace > pageHeight - 20) {
+      doc.addPage()
+      yPosition = 20
+    }
+  }
+
+  // Header
+  doc.setFontSize(20)
+  doc.setFont(undefined, "bold")
+  doc.text("AI Financial Advisor - Conversation Transcript", pageWidth / 2, yPosition, { align: "center" })
+  yPosition += 15
+
+  doc.setFontSize(12)
+  doc.setFont(undefined, "normal")
+  doc.text(
+    `Generated on: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`,
+    pageWidth / 2,
+    yPosition,
+    { align: "center" },
+  )
+  doc.text(`User: ${userId}`, pageWidth / 2, yPosition + 8, { align: "center" })
+  doc.text(`Total Messages: ${messages.length}`, pageWidth / 2, yPosition + 16, { align: "center" })
+  yPosition += 30
+
+  // Add a line separator
+  doc.setDrawColor(0, 0, 0)
+  doc.line(20, yPosition, pageWidth - 20, yPosition)
+  yPosition += 15
+
+  // Process each message
+  messages.forEach((message, index) => {
+    checkNewPage(25)
+
+    // Message header
+    doc.setFontSize(12)
+    doc.setFont(undefined, "bold")
+
+    const role = message.role === "user" ? "You" : "AI Financial Advisor"
+    const timestamp = message.timestamp ? new Date(message.timestamp).toLocaleTimeString() : ""
+
+    doc.text(`${role}${timestamp ? ` (${timestamp})` : ""}:`, 20, yPosition)
+    yPosition += 8
+
+    // Message content
+    doc.setFontSize(10)
+    doc.setFont(undefined, "normal")
+
+    let content = ""
+
+    // Handle different message formats
+    if (message.parts) {
+      content = message.parts
+        .filter((part) => part.type === "text")
+        .map((part) => part.text)
+        .join(" ")
+    } else if (message.content) {
+      content = message.content
+    } else {
+      content = "[No content]"
+    }
+
+    // Clean up content (remove markdown-style formatting for PDF)
+    content = content
+      .replace(/\*\*(.*?)\*\*/g, "$1") // Remove bold markdown
+      .replace(/\*(.*?)\*/g, "$1") // Remove italic markdown
+      .replace(/`(.*?)`/g, "$1") // Remove code markdown
+      .trim()
+
+    yPosition = addWrappedText(content, 20, yPosition, pageWidth - 40)
+    yPosition += 12
+
+    // Add separator between messages (except for last message)
+    if (index < messages.length - 1) {
+      checkNewPage(10)
+      doc.setDrawColor(200, 200, 200)
+      doc.line(20, yPosition, pageWidth - 20, yPosition)
+      yPosition += 8
+    }
+  })
+
+  // Summary section
+  checkNewPage(40)
+  doc.setDrawColor(0, 0, 0)
+  doc.line(20, yPosition, pageWidth - 20, yPosition)
+  yPosition += 15
+
+  doc.setFontSize(14)
+  doc.setFont(undefined, "bold")
+  doc.text("Conversation Summary", 20, yPosition)
+  yPosition += 10
+
+  doc.setFontSize(10)
+  doc.setFont(undefined, "normal")
+
+  const userMessages = messages.filter((m) => m.role === "user").length
+  const aiMessages = messages.filter((m) => m.role === "assistant").length
+
+  doc.text(`• Total messages: ${messages.length}`, 25, yPosition)
+  yPosition += 6
+  doc.text(`• Your messages: ${userMessages}`, 25, yPosition)
+  yPosition += 6
+  doc.text(`• AI responses: ${aiMessages}`, 25, yPosition)
+  yPosition += 6
+  doc.text(`• Conversation started: ${messages.length > 0 ? "Available in transcript" : "No messages"}`, 25, yPosition)
+
+  // Footer
+  const totalPages = doc.internal.getNumberOfPages()
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i)
+    doc.setFontSize(8)
+    doc.setFont(undefined, "normal")
+    doc.text(`Page ${i} of ${totalPages}`, pageWidth / 2, pageHeight - 10, { align: "center" })
+    doc.text("AI Financial Advisor Conversation Transcript", pageWidth / 2, pageHeight - 5, { align: "center" })
+  }
+
+  return doc
+}
+
+// Helper function to analyze financial data for PDF report
+function analyzeFinancialDataForPDF(financialText) {
+  const analysis = {
+    summary: "",
+    totalIncome: 0,
+    totalExpenses: 0,
+    netIncome: 0,
+    savingsRate: 0,
+    topCategories: [],
+    goals: [],
+    recommendations: [],
+  }
+
+  try {
+    const text = financialText.toLowerCase()
+
+    // Extract income information
+    const incomeMatches = financialText.match(/(?:income|salary|earn).*?[$]?(\d+(?:,\d{3})*(?:\.\d{2})?)/gi)
+    if (incomeMatches) {
+      incomeMatches.forEach((match) => {
+        const amount = Number.parseFloat(match.replace(/[^\d.]/g, ""))
+        if (amount > 0) analysis.totalIncome += amount
+      })
+    }
+
+    // Extract expense information
+    const expenseMatches = financialText.match(/(?:expense|cost|spend|pay).*?[$]?(\d+(?:,\d{3})*(?:\.\d{2})?)/gi)
+    if (expenseMatches) {
+      expenseMatches.forEach((match) => {
+        const amount = Number.parseFloat(match.replace(/[^\d.]/g, ""))
+        if (amount > 0) analysis.totalExpenses += amount
+      })
+    }
+
+    // Calculate net income and savings rate
+    analysis.netIncome = analysis.totalIncome - analysis.totalExpenses
+    if (analysis.totalIncome > 0) {
+      analysis.savingsRate = (analysis.netIncome / analysis.totalIncome) * 100
+    }
+
+    // Extract categories (simplified)
+    const categories = [
+      { name: "Housing", keywords: ["rent", "mortgage", "utilities"], amount: 0 },
+      { name: "Food", keywords: ["food", "groceries", "restaurant"], amount: 0 },
+      { name: "Transportation", keywords: ["car", "gas", "transport", "uber"], amount: 0 },
+      { name: "Entertainment", keywords: ["entertainment", "movies", "netflix"], amount: 0 },
+      { name: "Healthcare", keywords: ["health", "medical", "doctor"], amount: 0 },
+    ]
+
+    categories.forEach((category) => {
+      category.keywords.forEach((keyword) => {
+        const regex = new RegExp(`${keyword}.*?[\\$]?(\\d+(?:,\\d{3})*(?:\\.\\d{2})?)`, "gi")
+        const matches = financialText.match(regex)
+        if (matches) {
+          matches.forEach((match) => {
+            const amount = Number.parseFloat(match.replace(/[^\d.]/g, ""))
+            if (amount > 0) category.amount += amount
+          })
+        }
+      })
+    })
+
+    analysis.topCategories = categories.filter((cat) => cat.amount > 0).sort((a, b) => b.amount - a.amount)
+
+    // Extract goals
+    const goalKeywords = ["goal", "save for", "want to", "plan to", "target"]
+    goalKeywords.forEach((keyword) => {
+      const regex = new RegExp(`${keyword}[^.!?]*[.!?]`, "gi")
+      const matches = financialText.match(regex)
+      if (matches) {
+        analysis.goals.push(...matches.map((match) => match.trim()))
+      }
+    })
+
+    // Generate recommendations based on analysis
+    if (analysis.savingsRate < 10) {
+      analysis.recommendations.push("Consider increasing your savings rate to at least 20% of income")
+    }
+    if (analysis.totalExpenses > analysis.totalIncome) {
+      analysis.recommendations.push("Your expenses exceed your income - focus on reducing costs or increasing income")
+    }
+    if (analysis.topCategories.length > 0) {
+      const topCategory = analysis.topCategories[0]
+      if (topCategory.amount / analysis.totalExpenses > 0.4) {
+        analysis.recommendations.push(`Your ${topCategory.name} expenses are high - consider ways to reduce them`)
+      }
+    }
+
+    // Generate summary
+    analysis.summary = `This financial report shows a monthly income of $${analysis.totalIncome.toLocaleString()} and expenses of $${analysis.totalExpenses.toLocaleString()}, resulting in a net income of $${analysis.netIncome.toLocaleString()}. Your current savings rate is ${analysis.savingsRate.toFixed(1)}%.`
+  } catch (error) {
+    console.error("Error analyzing financial data:", error)
+    analysis.summary = "Financial data analysis could not be completed. Please review the raw data section below."
+  }
+
+  return analysis
+}
