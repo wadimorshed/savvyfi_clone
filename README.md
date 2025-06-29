@@ -30,147 +30,31 @@ Built with a modern tech stack and powered by AI via Google Gemini, our goal is 
 
 ## File Structure:
 ```
-finance-app/
+client/
+├── src/
+│   ├── App.js           # Main component
+│   ├── index.js         # Entry point 
+│   ├── index.css        # Global styles
+│   │
+│   ├── components/      # Optional
+│   ├── services/        # For API calls
+│   └── utils/           # Helper functions
+│
+├── public/
 ├── package.json
-├── .env
-├── .gitignore
-│
-├── client/                    # React Frontend
-│   ├── package.json
-│   ├── vite.config.js
-│   ├── tailwind.config.js
-│   │
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── Dashboard.jsx
-│   │   │   ├── Budget.jsx
-│   │   │   ├── Transactions.jsx
-│   │   │   ├── Goals.jsx
-│   │   │   ├── AIAssistant.jsx
-│   │   │   └── Layout.jsx
-│   │   │
-│   │   ├── services/
-│   │   │   └── api.js
-│   │   │
-│   │   ├── utils/
-│   │   │   └── helpers.js
-│   │   │
-│   │   ├── App.jsx
-│   │   └── main.jsx
-│   │
-│   ├── public/
-│   │   └── index.html
-│   │
-│   └── src/index.css
-│
-├── server/                    # Node.js + Express Backend
-│   ├── package.json
-│   ├── server.js
-│   │
-│   ├── routes/
-│   │   ├── transactionRoutes.js
-│   │   ├── budgetRoutes.js
-│   │   ├── goalRoutes.js
-│   │   ├── userRoutes.js
-│   │   └── aiRoutes.js
-│   │
-│   ├── controllers/
-│   │   ├── transactionController.js
-│   │   ├── budgetController.js
-│   │   ├── goalController.js
-│   │   ├── userController.js
-│   │   └── aiController.js
-│   │
-│   ├── services/
-│   │   └── geminiService.js
-│   │
-│   └── data/
-│       ├── transactions.json
-│       ├── budgets.json
-│       └── goals.json
+└── vite.config.js (or other config files)
 │
 └── README.md
 ```
 
 ## 🧑‍💻 Getting Started
 
-Follow these instructions to set up and run the Personal Finance App locally for development or testing.
 
 ### ✅ Prerequisites
-
-Before you begin, make sure you have the following installed:
-
-- [Node.js](https://nodejs.org/en/) (v18 or later recommended)
-- [npm](https://www.npmjs.com/)
-- [Git](https://git-scm.com/)
-- [SQLite](https://www.sqlite.org/index.html)
 
 ---
 
 ### ⚙️ Setup Instructions
-
-1. **Clone the repository**
-
-   ```bash
-   git clone https://github.com/your-username/finance-app.git
-   cd finance-app
-   ```
-
-2. **Install backend dependencies**
-
-   ```bash
-   cd server
-   npm install
-   ```
-
-3. **Install frontend dependencies**
-
-   ```bash
-   cd ../client
-   npm install
-   ```
-
-4. **Environment variables**
-
-   - Create a `.env` file in the root directory and configure the following (example):
-
-     ```env
-     GEMINI_API_KEY=your_google_gemini_api_key
-     PORT=5000
-     ```
-
-5. **Run the development servers**
-
-   - **Backend**
-
-     ```bash
-     cd ../server
-     npm run dev
-     ```
-
-   - **Frontend (in a new terminal tab/window)**
-
-     ```bash
-     cd ../client
-     npm run dev
-     ```
-
-6. **Access the app**
-
-   Open your browser and navigate to:  
-   👉 [http://localhost:5173](http://localhost:5173)
-
----
-
-### 🧪 Optional: Seed or reset data
-
-Sample JSON data for transactions, budgets, and goals are located in:
-
-```bash
-server/data/
-```
-
-Feel free to modify or reset the content for testing purposes.
 
 
 ---
@@ -178,4 +62,3 @@ Feel free to modify or reset the content for testing purposes.
 ## 📄 License
 
 This project is licensed under the MIT License.
-
