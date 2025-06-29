@@ -5,9 +5,9 @@ const { v4: uuidv4 } = require('uuid');
 
 // Create a new transaction
 exports.createTransaction = async (req, res) => {
-    const { type, category, amount, date, description } = req.body;
+    const { userId, type, category, amount, description, method, recurring, receipt, tags, budgetId } = req.body;
 
-    if (!userId || !type || !category || !amount || !date) {
+    if ( !userId || !type || !category || !amount || !method ) {
         return res.status(400).json({ message: 'Missing required transaction fields.' });
     }
     if (type !== 'income' && type !== 'expense') {
@@ -15,10 +15,10 @@ exports.createTransaction = async (req, res) => {
     }
 
     try {
-        const sql = `INSERT INTO transactions (userId, type, category, amount, date, description) VALUES (?, ?, ?, ?, ?, ?, ?)`;
-        const params = [req.user.userId, type, category, amount, date, description || null];
+        const sql = `INSERT INTO transactions (user_id, type, category, amount, description, payment_method, is_recurring, receipt_url, tags, budget_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        const params = [userId, type, category, amount, description, method, recurring, receipt, tags, budgetId];
         await db.run(sql, params);
-        res.status(201).json({ message: 'Transaction created successfully!', transaction: { id, userId, type, category, amount, date, description } });
+        res.status(201).json({ message: 'Transaction created successfully!', transaction: { userId, type, category, amount, description, method, recurring, receipt, tags, budgetId } });
     } catch (error) {
         console.error('Error creating transaction:', error.message);
         res.status(500).json({ message: 'Error creating transaction: ' + error.message });
@@ -29,7 +29,7 @@ exports.createTransaction = async (req, res) => {
 exports.getTransactionsByUserId = async (req, res) => {
     const { userId } = req.params; // Assuming userId is passed as a URL parameter
     try {
-        const transactions = await db.all('SELECT * FROM transactions WHERE userId = ? ORDER BY date DESC', [userId]);
+        const transactions = await db.all('SELECT * FROM transactions WHERE user_id = ? ORDER BY date DESC', [userId]);
         res.status(200).json(transactions);
     } catch (error) {
         res.status(500).json({ message: 'Error retrieving transactions: ' + error.message });

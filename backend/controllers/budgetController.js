@@ -1,31 +1,30 @@
     // server/controllers/budgetController.js
 
     const db = require('../services/databaseService');
-    const { v4: uuidv4 } = require('uuid');
 
     // Create a new budget
     exports.createBudget = async (req, res) => {
-        const { userId, category, limitAmount, spent = 0, period, startDate } = req.body;
-        const id = uuidv4();
+        const { userId, category, limit, spent, start, end, frequency, status } = req.body;
 
-        if (!userId || !category || !limitAmount || !period || !startDate) {
+        if (!userId || !category || !limit || !start || !frequency || !status) {
             return res.status(400).json({ message: 'Missing required budget fields.' });
         }
-        if (period !== 'monthly' && period !== 'weekly' && period !== 'yearly') {
+
+        if (frequency != 'monthly' && frequency != 'weekly' && frequency != 'yearly') {
             return res.status(400).json({ message: 'Budget period must be "monthly", "weekly", or "yearly".' });
         }
 
         try {
             // Optional: Check if a budget for this user/category/period already exists to avoid duplicates
-            const existingBudget = await db.all('SELECT id FROM budgets WHERE userId = ? AND category = ? AND period = ?', [userId, category, period]);
+            const existingBudget = await db.all('SELECT id FROM budgets WHERE user_id = ? AND category = ? AND frequency = ?', [userId, category, frequency]);
             if (existingBudget.length > 0) {
                 return res.status(409).json({ message: 'A budget for this category and period already exists for this user.' });
             }
 
-            const sql = `INSERT INTO budgets (id, userId, category, limitAmount, spent, period, startDate) VALUES (?, ?, ?, ?, ?, ?, ?)`;
-            const params = [id, userId, category, limitAmount, spent, period, startDate];
+            const sql = `INSERT INTO budgets (user_id, category, amount_limit, spent_amount, start_date, end_date, frequency, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+            const params = [userId, category, limit, spent, start, end, frequency, status];
             await db.run(sql, params);
-            res.status(201).json({ message: 'Budget created successfully!', budget: { id, userId, category, limitAmount, spent, period, startDate } });
+            res.status(201).json({ message: 'Budget created successfully!', budget: { userId, category, limit, spent, start, end, frequency, status } });
         } catch (error) {
             console.error('Error creating budget:', error.message);
             res.status(500).json({ message: 'Error creating budget: ' + error.message });
@@ -36,7 +35,7 @@
     exports.getBudgetsByUserId = async (req, res) => {
         const { userId } = req.params;
         try {
-            const budgets = await db.all('SELECT * FROM budgets WHERE userId = ?', [userId]);
+            const budgets = await db.all('SELECT * FROM budgets WHERE user_id = ?', [userId]);
             res.status(200).json(budgets);
         } catch (error) {
             res.status(500).json({ message: 'Error retrieving budgets: ' + error.message });
