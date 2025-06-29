@@ -19,12 +19,12 @@ Built with a modern tech stack and powered by AI via Google Gemini, our goal is 
 
 ## 🛠️ Tech Stack
 
-| Layer       | Technology                      |
-|-------------|---------------------------------|
-| Frontend        | React.js + Tailwind CSS     |
-| Backend         | Node.js + Express.js        |
-| AI Integration  | Google Gemini API           |
-| Database        | SQLite                      |
+| Layer           | Technology                                         |
+|-----------------|----------------------------------------------------|
+| Frontend        | React.js, Lucide React, CSS, and JavaScript        |
+| Backend         | Node.js + Express.js                               |
+| AI Integration  | Google Gemini API                                  |
+| Database        | SQLite                                             |
 
 ---
 
